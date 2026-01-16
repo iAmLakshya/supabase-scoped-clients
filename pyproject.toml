@@ -1,0 +1,28 @@
+[project]
+name = "supabase-scoped-clients"
+version = "0.1.0"
+description = "Create user-scoped Supabase clients using self-signed JWT tokens for stateless user impersonation"
+requires-python = ">=3.11"
+dependencies = [
+    "pyjwt>=2.8.0,<3.0.0",
+    "supabase>=2.0.0,<3.0.0",
+    "pydantic-settings>=2.0.0,<3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-asyncio>=0.23.0,<1.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+]
+
+[tool.poetry]
+packages = [{include = "supabase_scoped_clients", from = "src"}]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
