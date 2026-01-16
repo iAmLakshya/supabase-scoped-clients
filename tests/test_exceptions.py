@@ -32,7 +32,10 @@ class TestConfigurationError:
 
     def test_includes_field_name_in_message(self) -> None:
         exc = ConfigurationError("supabase_url", "URL must start with https://")
-        assert str(exc) == "ConfigurationError: supabase_url - URL must start with https://"
+        assert (
+            str(exc)
+            == "ConfigurationError: supabase_url - URL must start with https://"
+        )
 
     def test_stores_field_name_as_attribute(self) -> None:
         exc = ConfigurationError("supabase_key", "cannot be empty")

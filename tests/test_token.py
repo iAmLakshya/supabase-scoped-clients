@@ -230,7 +230,10 @@ class TestGenerateTokenCustomClaims:
             "aud": "hacked",
         }
         token = generate_token(
-            config, "real-user-123", role="authenticated", custom_claims=malicious_claims
+            config,
+            "real-user-123",
+            role="authenticated",
+            custom_claims=malicious_claims,
         )
 
         decoded = jwt.decode(

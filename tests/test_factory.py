@@ -1,16 +1,13 @@
 """Tests for the synchronous client factory."""
 
-import os
 import uuid
-from unittest.mock import MagicMock, patch
 
 import pytest
-from supabase import Client
 
-from supabase_scoped_clients.core.config import Config, load_config
+from supabase import Client
+from supabase_scoped_clients.core.config import Config
 from supabase_scoped_clients.core.exceptions import ClientError
 from supabase_scoped_clients.factories.sync import get_client
-
 
 # Test data - use local Supabase dev instance
 LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"
@@ -195,7 +192,8 @@ class TestGetClientRLS:
         client1 = get_client(user1_id, config=config)
 
         # Try to insert data pretending to be user2
-        with pytest.raises(Exception):
+        # Using Exception because supabase can raise various error types
+        with pytest.raises(Exception):  # noqa: B017
             client1.table("test_user_data").insert(
                 {"user_id": user2_id, "content": "malicious content"}
             ).execute()

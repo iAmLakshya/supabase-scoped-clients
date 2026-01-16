@@ -2,7 +2,7 @@
 
 import pytest
 
-from supabase_scoped_clients.core.config import Config, load_config
+from supabase_scoped_clients.core.config import load_config
 from supabase_scoped_clients.core.exceptions import ConfigurationError
 
 

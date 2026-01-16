@@ -1,8 +1,6 @@
 """Tests for TokenRefreshProxy with automatic token refresh."""
 
-import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

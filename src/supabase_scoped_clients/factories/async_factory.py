@@ -2,8 +2,9 @@
 
 from typing import Any
 
-from supabase import AsyncClient, acreate_client
 from supabase.lib.client_options import AsyncClientOptions
+
+from supabase import AsyncClient, acreate_client
 
 from ..core.config import Config, load_config
 from ..core.exceptions import ClientError

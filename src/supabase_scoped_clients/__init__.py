@@ -1,4 +1,4 @@
-"""Supabase Scoped Clients - Create user-scoped Supabase clients using self-signed JWTs."""
+"""Supabase Scoped Clients - User-scoped Supabase clients with self-signed JWTs."""
 
 __version__ = "0.1.0"
 

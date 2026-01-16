@@ -4,8 +4,9 @@ import threading
 import time
 from typing import Any
 
-from supabase import Client, create_client
 from supabase.lib.client_options import SyncClientOptions
+
+from supabase import Client, create_client
 
 from ..core.config import Config, load_config
 from ..core.exceptions import ClientError
@@ -132,7 +133,9 @@ class ScopedClient:
             AttributeError: If attribute doesn't exist on the client.
         """
         if self._proxied_client is None:
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
         self.ensure_valid_token()
         return getattr(self._proxied_client, name)

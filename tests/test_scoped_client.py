@@ -3,13 +3,11 @@
 import threading
 import time
 import uuid
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from supabase_scoped_clients.clients.sync import ScopedClient
 from supabase_scoped_clients.core.config import Config
-
 
 # Test data - use local Supabase dev instance
 LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"

@@ -1,6 +1,6 @@
 """JWT token generation for Supabase-compatible user impersonation."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import jwt as pyjwt
@@ -38,7 +38,7 @@ def generate_token(
     if expiry_seconds <= 0:
         raise TokenError("expiry must be positive")
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     iat = int(now.timestamp())
     exp = iat + expiry_seconds
 

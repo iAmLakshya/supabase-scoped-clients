@@ -9,7 +9,6 @@ from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 from supabase_scoped_clients.core.config import Config
 from supabase_scoped_clients.core.exceptions import ClientError
 
-
 LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"
 LOCAL_SUPABASE_KEY = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
 LOCAL_JWT_SECRET = "super-secret-jwt-token-with-at-least-32-characters-long"

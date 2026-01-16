@@ -3,12 +3,11 @@
 import uuid
 
 import pytest
-from supabase import AsyncClient
 
+from supabase import AsyncClient
 from supabase_scoped_clients.core.config import Config
 from supabase_scoped_clients.core.exceptions import ClientError
 from supabase_scoped_clients.factories.async_factory import get_async_client
-
 
 # Test data - use local Supabase dev instance
 LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"
@@ -214,7 +213,8 @@ class TestGetAsyncClientRLS:
         client1 = await get_async_client(user1_id, config=config)
 
         # Try to insert data pretending to be user2
-        with pytest.raises(Exception):
+        # Using Exception because supabase can raise various error types
+        with pytest.raises(Exception):  # noqa: B017
             await (
                 client1.table("test_user_data")
                 .insert({"user_id": user2_id, "content": "malicious content"})

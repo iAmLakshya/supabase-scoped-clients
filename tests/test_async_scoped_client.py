@@ -1,15 +1,12 @@
 """Tests for AsyncScopedClient with automatic token refresh."""
 
 import asyncio
-import time
 import uuid
 
 import pytest
-from supabase import AsyncClient
 
 from supabase_scoped_clients.core.config import Config
 from supabase_scoped_clients.core.exceptions import ClientError
-
 
 # Test data - use local Supabase dev instance
 LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"
@@ -100,7 +97,7 @@ class TestAsyncScopedClientDelegation:
         client = await AsyncScopedClient.create(user_id, config=config)
         # rpc method should exist and be callable
         assert hasattr(client, "rpc")
-        assert callable(getattr(client, "rpc"))
+        assert callable(client.rpc)
 
 
 class TestAsyncScopedClientTokenRefresh:

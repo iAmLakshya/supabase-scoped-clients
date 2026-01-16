@@ -46,7 +46,7 @@ class TokenRefreshProxy:
         object.__setattr__(
             self,
             "_is_async_manager",
-            inspect.iscoroutinefunction(getattr(token_manager, "ensure_valid_token")),
+            inspect.iscoroutinefunction(token_manager.ensure_valid_token),
         )
 
     def __getattr__(self, name: str) -> Any:
@@ -68,6 +68,7 @@ class TokenRefreshProxy:
         is_async_manager = object.__getattribute__(self, "_is_async_manager")
 
         if inspect.iscoroutinefunction(func):
+
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 if is_async_manager:
                     await token_manager.ensure_valid_token()

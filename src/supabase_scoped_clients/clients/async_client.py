@@ -4,8 +4,9 @@ import asyncio
 import time
 from typing import Any
 
-from supabase import AsyncClient, acreate_client
 from supabase.lib.client_options import AsyncClientOptions
+
+from supabase import AsyncClient, acreate_client
 
 from ..core.config import Config, load_config
 from ..core.exceptions import ClientError
@@ -186,6 +187,8 @@ class AsyncScopedClient:
             AttributeError: If attribute doesn't exist on the client.
         """
         if self._proxied_client is None:
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
         return getattr(self._proxied_client, name)

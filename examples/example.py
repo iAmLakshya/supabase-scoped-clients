@@ -72,7 +72,9 @@ def rls_isolation():
 
     note_b = (
         client_b.table("notes")
-        .insert({"user_id": user_b, "title": "User B's Note", "content": "Also private"})
+        .insert(
+            {"user_id": user_b, "title": "User B's Note", "content": "Also private"}
+        )
         .execute()
         .data[0]
     )
@@ -129,7 +131,9 @@ def builder_pattern():
 
     note = (
         client.table("notes")
-        .insert({"user_id": user_id, "title": "Multi-tenant Note", "content": "With org_id"})
+        .insert(
+            {"user_id": user_id, "title": "Multi-tenant Note", "content": "With org_id"}
+        )
         .execute()
         .data[0]
     )
