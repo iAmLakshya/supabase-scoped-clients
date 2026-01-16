@@ -102,7 +102,13 @@ class TestConfigValidation:
 
         assert exc_info.value.field_name == "supabase_jwt_secret"
 
-    def test_missing_url_raises_configuration_error(self) -> None:
+    def test_missing_url_raises_configuration_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("SUPABASE_URL", raising=False)
+        monkeypatch.delenv("SUPABASE_KEY", raising=False)
+        monkeypatch.delenv("SUPABASE_JWT_SECRET", raising=False)
+
         with pytest.raises(ConfigurationError) as exc_info:
             load_config(
                 supabase_key="key",
