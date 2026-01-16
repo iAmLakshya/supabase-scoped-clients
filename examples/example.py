@@ -21,6 +21,7 @@ from supabase_scoped_clients import (
 
 def basic_usage():
     """Basic CRUD operations with a scoped client."""
+    print("1. Basic Usage")
     user_id = str(uuid.uuid4())
     client = get_client(user_id)
 
@@ -30,6 +31,7 @@ def basic_usage():
         .execute()
         .data[0]
     )
+    print(f"   Created note: {note['id']}")
 
     notes = client.table("notes").select("*").execute().data
     assert len(notes) == 1
@@ -42,30 +44,32 @@ def basic_usage():
         .data[0]
     )
     assert updated["title"] == "Updated Note"
+    print("   Updated note")
 
     client.table("notes").delete().eq("id", note["id"]).execute()
+    print("   Deleted note")
 
 
 def rls_isolation():
     """Verify that RLS properly isolates data between users."""
+    print("2. RLS Isolation")
     user_a = str(uuid.uuid4())
     user_b = str(uuid.uuid4())
     client_a = get_client(user_a)
     client_b = get_client(user_b)
 
-    # User A creates a note
     note_a = (
         client_a.table("notes")
         .insert({"user_id": user_a, "title": "User A's Secret", "content": "Private"})
         .execute()
         .data[0]
     )
+    print(f"   User A created note: {note_a['id']}")
 
-    # User B cannot see User A's note
     user_b_sees = client_b.table("notes").select("*").execute().data
     assert len(user_b_sees) == 0, "RLS violation: User B can see User A's data!"
+    print("   User B cannot see User A's note ✓")
 
-    # User B creates their own note
     note_b = (
         client_b.table("notes")
         .insert({"user_id": user_b, "title": "User B's Note", "content": "Also private"})
@@ -73,11 +77,10 @@ def rls_isolation():
         .data[0]
     )
 
-    # Each user sees only their own data
     assert len(client_a.table("notes").select("*").execute().data) == 1
     assert len(client_b.table("notes").select("*").execute().data) == 1
+    print("   Each user sees only their own data ✓")
 
-    # User B cannot update User A's note
     result = (
         client_b.table("notes")
         .update({"title": "Hacked!"})
@@ -85,14 +88,15 @@ def rls_isolation():
         .execute()
     )
     assert len(result.data) == 0, "RLS violation: User B modified User A's data!"
+    print("   User B cannot modify User A's note ✓")
 
-    # Cleanup
     client_a.table("notes").delete().eq("id", note_a["id"]).execute()
     client_b.table("notes").delete().eq("id", note_b["id"]).execute()
 
 
 async def async_usage():
     """Async client usage with get_async_client()."""
+    print("3. Async Usage")
     user_id = str(uuid.uuid4())
     client = await get_async_client(user_id)
 
@@ -101,23 +105,27 @@ async def async_usage():
         .insert({"user_id": user_id, "title": "Async Note", "content": "Created async"})
         .execute()
     ).data[0]
+    print(f"   Created async note: {note['id']}")
 
     notes = (await client.table("notes").select("*").execute()).data
     assert len(notes) == 1
 
     await client.table("notes").delete().eq("id", note["id"]).execute()
+    print("   Deleted async note")
 
 
 def builder_pattern():
     """ScopedClientBuilder for custom claims and expiry."""
+    print("4. Builder Pattern")
     user_id = str(uuid.uuid4())
 
     client = (
         ScopedClientBuilder(user_id)
         .with_claims({"org_id": "org-123", "role": "admin"})
-        .with_expiry(7200)  # 2 hours
+        .with_expiry(7200)
         .build()
     )
+    print("   Built client with custom claims: org_id=org-123, role=admin")
 
     note = (
         client.table("notes")
@@ -125,8 +133,10 @@ def builder_pattern():
         .execute()
         .data[0]
     )
+    print(f"   Created note: {note['id']}")
 
     client.table("notes").delete().eq("id", note["id"]).execute()
+    print("   Deleted note")
 
 
 if __name__ == "__main__":
@@ -134,4 +144,4 @@ if __name__ == "__main__":
     rls_isolation()
     asyncio.run(async_usage())
     builder_pattern()
-    print("All examples passed!")
+    print("\nAll examples passed!")
