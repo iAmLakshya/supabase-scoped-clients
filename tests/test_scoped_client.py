@@ -63,12 +63,19 @@ class TestTokenRefresh:
             refresh_threshold_seconds=60,
         )
 
-        initial_exp = scoped_client._token_exp
+        refresh_count = [0]
+        original_create = scoped_client._create_client
 
-        # Access a property (should not trigger refresh)
-        _ = scoped_client.table
+        def counting_create():
+            refresh_count[0] += 1
+            original_create()
 
-        assert scoped_client._token_exp == initial_exp
+        scoped_client._create_client = counting_create
+
+        # Access storage (should not trigger refresh - token still valid)
+        _ = scoped_client.storage
+
+        assert refresh_count[0] == 0
 
     def test_refresh_when_token_near_expiry(self, config):
         """Token is refreshed when approaching expiry."""
@@ -80,15 +87,22 @@ class TestTokenRefresh:
             refresh_threshold_seconds=60,
         )
 
+        refresh_count = [0]
+        original_create = scoped_client._create_client
+
+        def counting_create():
+            refresh_count[0] += 1
+            original_create()
+
+        scoped_client._create_client = counting_create
+
         # Simulate token being near expiry by setting exp to past
-        original_exp = scoped_client._token_exp
         scoped_client._token_exp = int(time.time()) - 1
 
-        # Access a property (should trigger refresh)
-        _ = scoped_client.table
+        # Access storage (should trigger refresh)
+        _ = scoped_client.storage
 
-        # Token should have been refreshed
-        assert scoped_client._token_exp > original_exp
+        assert refresh_count[0] == 1
 
     def test_refresh_threshold_is_configurable(self, config):
         """Refresh threshold can be configured."""
@@ -102,14 +116,22 @@ class TestTokenRefresh:
             refresh_threshold_seconds=threshold,
         )
 
+        refresh_count = [0]
+        original_create = scoped_client._create_client
+
+        def counting_create():
+            refresh_count[0] += 1
+            original_create()
+
+        scoped_client._create_client = counting_create
+
         # Set token to expire within threshold
         scoped_client._token_exp = int(time.time()) + threshold - 1
 
-        # Access a property (should trigger refresh due to threshold)
-        _ = scoped_client.table
+        # Access storage (should trigger refresh due to threshold)
+        _ = scoped_client.storage
 
-        # Token should have been refreshed to a new expiry
-        assert scoped_client._token_exp > int(time.time()) + threshold
+        assert refresh_count[0] == 1
 
 
 class TestSingleFlightRefresh:
@@ -137,10 +159,10 @@ class TestSingleFlightRefresh:
         # Force token to need refresh
         scoped_client._token_exp = int(time.time()) - 1
 
-        # Launch multiple threads accessing the client
+        # Launch multiple threads accessing the client (using storage property)
         threads = []
         for _ in range(5):
-            t = threading.Thread(target=lambda: scoped_client.table)
+            t = threading.Thread(target=lambda: scoped_client.storage)
             threads.append(t)
 
         for t in threads:

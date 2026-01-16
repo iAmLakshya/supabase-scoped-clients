@@ -12,6 +12,7 @@ from .exceptions import (
 )
 from .factory import get_client
 from .jwt import generate_token
+from .scoped_client import ScopedClient
 
 __all__ = [
     "Config",
@@ -19,6 +20,7 @@ __all__ = [
     "generate_token",
     "get_client",
     "get_async_client",
+    "ScopedClient",
     "SupabaseScopedClientsError",
     "ConfigurationError",
     "TokenError",
