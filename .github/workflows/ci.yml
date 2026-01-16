@@ -32,3 +32,52 @@ jobs:
 
       - name: Run mypy
         run: poetry run mypy src/supabase_scoped_clients
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --extras dev
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Get Supabase status
+        id: supabase
+        run: |
+          supabase status -o env > /tmp/supabase_env
+          cat /tmp/supabase_env
+          source /tmp/supabase_env
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "anon_key=$ANON_KEY" >> $GITHUB_OUTPUT
+          echo "jwt_secret=$JWT_SECRET" >> $GITHUB_OUTPUT
+
+      - name: Run tests
+        env:
+          SUPABASE_URL: ${{ steps.supabase.outputs.api_url }}
+          SUPABASE_KEY: ${{ steps.supabase.outputs.anon_key }}
+          SUPABASE_JWT_SECRET: ${{ steps.supabase.outputs.jwt_secret }}
+        run: poetry run pytest tests/ -v
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop

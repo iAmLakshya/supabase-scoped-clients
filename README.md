@@ -8,18 +8,6 @@ Server-side Supabase applications often need to execute database operations on b
 
 **This library solves the problem** by generating self-signed JWT tokens that Supabase accepts for RLS evaluation. Each token is independently generated with no shared state, enabling unlimited concurrent sessions per user across any number of services.
 
-## Installation
-
-From source (not yet published to PyPI):
-
-```bash
-# Using pip
-pip install git+https://github.com/yourusername/supabase-scoped-clients.git
-
-# Using Poetry
-poetry add git+https://github.com/yourusername/supabase-scoped-clients.git
-```
-
 ## Quick Start
 
 Set environment variables:
@@ -39,7 +27,7 @@ client = get_client("user-uuid-here")
 data = client.table("notes").select("*").execute()
 ```
 
-The client now operates as that user, and RLS policies are enforced.
+The client now operates as that user, and RLS policies are enforced. Tokens are automatically refreshed before expiry.
 
 ## Configuration
 
@@ -47,10 +35,10 @@ The client now operates as that user, and RLS policies are enforced.
 
 The library reads configuration from these environment variables:
 
-| Variable | Description |
-|----------|-------------|
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_KEY` | Supabase anon key or service role key |
+| Variable              | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| `SUPABASE_URL`        | Your Supabase project URL                                        |
+| `SUPABASE_KEY`        | Supabase anon key or service role key                            |
 | `SUPABASE_JWT_SECRET` | JWT secret from Supabase dashboard (Settings > API > JWT Secret) |
 
 ### Programmatic Configuration
@@ -84,16 +72,14 @@ except ConfigurationError as e:
 
 ## Usage Examples
 
-### Basic Sync Client
-
-The simplest way to get a user-scoped client:
+### Sync Client
 
 ```python
 from supabase_scoped_clients import get_client
 
 client = get_client("user-uuid")
 
-# All operations execute as this user
+# All operations execute as this user with auto-refresh enabled
 data = client.table("notes").select("*").execute()
 client.table("notes").insert({"title": "New Note"}).execute()
 ```
@@ -111,58 +97,33 @@ data = await client.table("notes").select("*").execute()
 await client.table("notes").insert({"title": "New Note"}).execute()
 ```
 
-### With Auto-Refresh (ScopedClient)
+### All Parameters
 
-For long-running operations, `ScopedClient` automatically refreshes the token before it expires:
-
-```python
-from supabase_scoped_clients import ScopedClient
-
-scoped = ScopedClient("user-uuid")
-
-# Token auto-refreshes when needed, no manual management required
-scoped.table("notes").select("*").execute()
-```
-
-For async:
+Both `get_client` and `get_async_client` accept the same parameters:
 
 ```python
-from supabase_scoped_clients import AsyncScopedClient
+from supabase_scoped_clients import get_client
 
-scoped = await AsyncScopedClient.create("user-uuid")
-await scoped.table("notes").select("*").execute()
-```
-
-### Builder Pattern
-
-For advanced configuration, use the fluent builder API:
-
-```python
-from supabase_scoped_clients import ScopedClientBuilder
-
-client = (
-    ScopedClientBuilder("user-uuid")
-    .with_role("authenticated")
-    .with_expiry(7200)  # 2 hours
-    .with_claims({"tenant_id": "abc123"})
-    .with_refresh_threshold(120)  # refresh 2 min before expiry
-    .build()
+client = get_client(
+    "user-uuid",
+    config=config,                      # Optional: explicit config
+    role="authenticated",               # JWT role (default: "authenticated")
+    expiry_seconds=3600,                # Token validity (default: 1 hour)
+    custom_claims={"tenant_id": "abc"}, # Additional JWT claims
+    auto_refresh=True,                  # Auto-refresh tokens (default: True)
+    refresh_threshold_seconds=60,       # Refresh 60s before expiry (default: 60)
 )
 ```
 
-For async:
+### Disabling Auto-Refresh
+
+For short-lived operations where auto-refresh isn't needed:
 
 ```python
-from supabase_scoped_clients import AsyncScopedClientBuilder
+from supabase_scoped_clients import get_client
 
-client = await (
-    AsyncScopedClientBuilder("user-uuid")
-    .with_role("authenticated")
-    .with_expiry(7200)
-    .with_claims({"tenant_id": "abc123"})
-    .with_refresh_threshold(120)
-    .build()
-)
+# Get a bare client without auto-refresh
+client = get_client("user-uuid", auto_refresh=False)
 ```
 
 ### Custom Claims for Multi-tenant RLS
@@ -191,33 +152,13 @@ CREATE POLICY "tenant_isolation" ON documents
 
 ### Factory Functions
 
-**`get_client(user_id, *, config=None, role="authenticated", expiry_seconds=3600, custom_claims=None)`**
+**`get_client(user_id, *, config=None, role="authenticated", expiry_seconds=3600, custom_claims=None, auto_refresh=True, refresh_threshold_seconds=60)`**
 
-Creates a sync Supabase client scoped to the specified user. Returns a native `supabase.Client`.
+Creates a sync Supabase client scoped to the specified user. Returns a native `supabase.Client`. By default, tokens auto-refresh before expiry.
 
-**`get_async_client(user_id, *, config=None, role="authenticated", expiry_seconds=3600, custom_claims=None)`**
+**`get_async_client(user_id, *, config=None, role="authenticated", expiry_seconds=3600, custom_claims=None, auto_refresh=True, refresh_threshold_seconds=60)`**
 
-Creates an async Supabase client scoped to the specified user. Returns a native `supabase.AsyncClient`.
-
-### Wrapper Classes (Auto-Refresh)
-
-**`ScopedClient(user_id, config=None, *, role="authenticated", expiry_seconds=3600, custom_claims=None, refresh_threshold_seconds=60)`**
-
-Sync client wrapper with automatic token refresh. Delegates all method calls to the underlying `supabase.Client`.
-
-**`AsyncScopedClient.create(user_id, *, config=None, role="authenticated", expiry_seconds=3600, custom_claims=None, refresh_threshold_seconds=60)`**
-
-Async client wrapper with automatic token refresh. Use the `create()` classmethod to instantiate.
-
-### Builder Classes
-
-**`ScopedClientBuilder(user_id, config=None)`**
-
-Fluent builder for `ScopedClient`. Methods: `with_role()`, `with_expiry()`, `with_claims()`, `with_refresh_threshold()`, `build()`.
-
-**`AsyncScopedClientBuilder(user_id, config=None)`**
-
-Fluent builder for `AsyncScopedClient`. Same methods as sync, but `build()` is async.
+Creates an async Supabase client scoped to the specified user. Returns a native `supabase.AsyncClient`. By default, tokens auto-refresh before expiry.
 
 ### Configuration
 
@@ -241,19 +182,19 @@ Loads configuration from environment variables, converting validation errors to 
 
 ## Token Auto-Refresh Behavior
 
-`ScopedClient` and `AsyncScopedClient` automatically manage token lifecycle:
+By default, `get_client` and `get_async_client` return clients with automatic token management:
 
 1. **Proactive refresh**: Tokens are refreshed before they expire, not after. The default threshold is 60 seconds before expiry.
 
 2. **Single-flight pattern**: Concurrent operations share a single refresh. If multiple operations trigger refresh simultaneously, only one refresh occurs.
 
-3. **Seamless operation**: No manual token management needed. The wrapper intercepts method calls and ensures a valid token before execution.
+3. **Seamless operation**: No manual token management needed. The client intercepts method calls and ensures a valid token before execution.
 
 Configure the refresh threshold based on your operation duration:
 
 ```python
 # Refresh 2 minutes before expiry for long operations
-scoped = ScopedClient("user-uuid", refresh_threshold_seconds=120)
+client = get_client("user-uuid", refresh_threshold_seconds=120)
 ```
 
 ## Requirements

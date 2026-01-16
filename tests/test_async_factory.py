@@ -5,24 +5,8 @@ import uuid
 import pytest
 
 from supabase import AsyncClient
-from supabase_scoped_clients.core.config import Config
 from supabase_scoped_clients.core.exceptions import ClientError
 from supabase_scoped_clients.factories.async_factory import get_async_client
-
-# Test data - use local Supabase dev instance
-LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"
-LOCAL_SUPABASE_KEY = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
-LOCAL_JWT_SECRET = "super-secret-jwt-token-with-at-least-32-characters-long"
-
-
-@pytest.fixture
-def config():
-    """Create a test config for local Supabase."""
-    return Config(
-        supabase_url=LOCAL_SUPABASE_URL,
-        supabase_key=LOCAL_SUPABASE_KEY,
-        supabase_jwt_secret=LOCAL_JWT_SECRET,
-    )
 
 
 class TestGetAsyncClientBasic:
@@ -30,9 +14,9 @@ class TestGetAsyncClientBasic:
 
     @pytest.mark.asyncio
     async def test_returns_async_supabase_client(self, config):
-        """get_async_client returns an AsyncClient instance."""
+        """get_async_client returns an AsyncClient instance when auto_refresh=False."""
         user_id = str(uuid.uuid4())
-        client = await get_async_client(user_id, config=config)
+        client = await get_async_client(user_id, config=config, auto_refresh=False)
         assert isinstance(client, AsyncClient)
 
     @pytest.mark.asyncio
@@ -54,14 +38,16 @@ class TestGetAsyncClientConfig:
         assert client is not None
 
     @pytest.mark.asyncio
-    async def test_loads_config_from_env_when_not_provided(self, monkeypatch):
+    async def test_loads_config_from_env_when_not_provided(
+        self, monkeypatch, supabase_url, supabase_key, supabase_jwt_secret
+    ):
         """get_async_client loads config from environment when not provided."""
-        monkeypatch.setenv("SUPABASE_URL", LOCAL_SUPABASE_URL)
-        monkeypatch.setenv("SUPABASE_KEY", LOCAL_SUPABASE_KEY)
-        monkeypatch.setenv("SUPABASE_JWT_SECRET", LOCAL_JWT_SECRET)
+        monkeypatch.setenv("SUPABASE_URL", supabase_url)
+        monkeypatch.setenv("SUPABASE_KEY", supabase_key)
+        monkeypatch.setenv("SUPABASE_JWT_SECRET", supabase_jwt_secret)
 
         user_id = str(uuid.uuid4())
-        client = await get_async_client(user_id)
+        client = await get_async_client(user_id, auto_refresh=False)
         assert isinstance(client, AsyncClient)
 
 

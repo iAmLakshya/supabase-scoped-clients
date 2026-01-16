@@ -13,7 +13,6 @@ import asyncio
 import uuid
 
 from supabase_scoped_clients import (
-    ScopedClientBuilder,
     get_async_client,
     get_client,
 )
@@ -116,18 +115,17 @@ async def async_usage():
     print("   Deleted async note")
 
 
-def builder_pattern():
-    """ScopedClientBuilder for custom claims and expiry."""
-    print("4. Builder Pattern")
+def custom_claims_usage():
+    """Using custom claims and expiry with get_client()."""
+    print("4. Custom Claims")
     user_id = str(uuid.uuid4())
 
-    client = (
-        ScopedClientBuilder(user_id)
-        .with_claims({"org_id": "org-123", "role": "admin"})
-        .with_expiry(7200)
-        .build()
+    client = get_client(
+        user_id,
+        custom_claims={"org_id": "org-123", "role": "admin"},
+        expiry_seconds=7200,
     )
-    print("   Built client with custom claims: org_id=org-123, role=admin")
+    print("   Created client with custom claims: org_id=org-123, role=admin")
 
     note = (
         client.table("notes")
@@ -147,5 +145,5 @@ if __name__ == "__main__":
     basic_usage()
     rls_isolation()
     asyncio.run(async_usage())
-    builder_pattern()
+    custom_claims_usage()
     print("\nAll examples passed!")

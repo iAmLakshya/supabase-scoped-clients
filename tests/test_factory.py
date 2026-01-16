@@ -5,33 +5,17 @@ import uuid
 import pytest
 
 from supabase import Client
-from supabase_scoped_clients.core.config import Config
 from supabase_scoped_clients.core.exceptions import ClientError
 from supabase_scoped_clients.factories.sync import get_client
-
-# Test data - use local Supabase dev instance
-LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"
-LOCAL_SUPABASE_KEY = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
-LOCAL_JWT_SECRET = "super-secret-jwt-token-with-at-least-32-characters-long"
-
-
-@pytest.fixture
-def config():
-    """Create a test config for local Supabase."""
-    return Config(
-        supabase_url=LOCAL_SUPABASE_URL,
-        supabase_key=LOCAL_SUPABASE_KEY,
-        supabase_jwt_secret=LOCAL_JWT_SECRET,
-    )
 
 
 class TestGetClientBasic:
     """Test basic get_client functionality."""
 
     def test_returns_supabase_client(self, config):
-        """get_client returns a Supabase Client instance."""
+        """get_client returns a Supabase Client instance when auto_refresh=False."""
         user_id = str(uuid.uuid4())
-        client = get_client(user_id, config=config)
+        client = get_client(user_id, config=config, auto_refresh=False)
         assert isinstance(client, Client)
 
     def test_accepts_user_id_as_string(self, config):
@@ -50,14 +34,16 @@ class TestGetClientConfig:
         client = get_client(user_id, config=config)
         assert client is not None
 
-    def test_loads_config_from_env_when_not_provided(self, monkeypatch):
+    def test_loads_config_from_env_when_not_provided(
+        self, monkeypatch, supabase_url, supabase_key, supabase_jwt_secret
+    ):
         """get_client loads config from environment when not provided."""
-        monkeypatch.setenv("SUPABASE_URL", LOCAL_SUPABASE_URL)
-        monkeypatch.setenv("SUPABASE_KEY", LOCAL_SUPABASE_KEY)
-        monkeypatch.setenv("SUPABASE_JWT_SECRET", LOCAL_JWT_SECRET)
+        monkeypatch.setenv("SUPABASE_URL", supabase_url)
+        monkeypatch.setenv("SUPABASE_KEY", supabase_key)
+        monkeypatch.setenv("SUPABASE_JWT_SECRET", supabase_jwt_secret)
 
         user_id = str(uuid.uuid4())
-        client = get_client(user_id)
+        client = get_client(user_id, auto_refresh=False)
         assert isinstance(client, Client)
 
 
