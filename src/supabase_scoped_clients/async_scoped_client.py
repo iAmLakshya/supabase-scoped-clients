@@ -10,20 +10,27 @@ from supabase.lib.client_options import AsyncClientOptions
 from .config import Config, load_config
 from .exceptions import ClientError
 from .jwt import generate_token
+from .proxy import create_proxy
 
 
 class AsyncScopedClient:
     """Async Supabase client wrapper with automatic token refresh.
 
     Wraps supabase.AsyncClient and transparently refreshes the JWT token
-    before it expires. Users don't need to handle token expiry manually.
+    before it expires. Token refresh happens automatically when async methods
+    are called - no manual ensure_valid_token() calls needed.
 
     Use the async factory method `create()` to instantiate:
 
         client = await AsyncScopedClient.create(user_id, config=config)
 
-    The wrapper delegates all operations to the underlying AsyncClient
-    while ensuring the token is valid before each operation.
+    The wrapper uses TokenRefreshProxy to intercept async method calls and
+    automatically refresh the token before execution.
+
+    Example:
+        >>> client = await AsyncScopedClient.create(user_id)
+        >>> # Token auto-refreshes before async operations
+        >>> await client.table("items").select("*").execute()
     """
 
     def __init__(
@@ -47,6 +54,7 @@ class AsyncScopedClient:
         self._custom_claims = custom_claims
         self._refresh_threshold = refresh_threshold_seconds
         self._lock = asyncio.Lock()
+        self._proxied_client: AsyncClient = create_proxy(client, self)
 
     @classmethod
     async def create(
@@ -133,40 +141,51 @@ class AsyncScopedClient:
 
         self._client.options.headers["Authorization"] = f"Bearer {token}"
 
-    async def _ensure_valid_token(self) -> None:
+    async def ensure_valid_token(self) -> None:
         """Ensure the token is valid, refreshing if necessary.
 
         Uses asyncio.Lock for single-flight pattern - concurrent operations
         share one refresh rather than triggering multiple refreshes.
 
-        Call this before operations on long-lived clients.
+        Note: With TokenRefreshProxy, this is called automatically before
+        async method calls. Manual calls are only needed for special cases.
         """
         if not self._needs_refresh():
             return
 
         async with self._lock:
-            # Double-check after acquiring lock (another coroutine may have refreshed)
             if self._needs_refresh():
                 await self._refresh_token()
 
-    # Public alias
-    ensure_valid_token = _ensure_valid_token
+    async def _ensure_valid_token(self) -> None:
+        """Internal alias for ensure_valid_token (backward compatibility)."""
+        await self.ensure_valid_token()
+
+    @property
+    def client(self) -> AsyncClient:
+        """Get the proxied client with automatic token refresh.
+
+        Returns:
+            The proxied AsyncClient that auto-refreshes tokens.
+        """
+        return self._proxied_client
 
     def __getattr__(self, name: str) -> Any:
-        """Delegate all attribute access to underlying client.
+        """Delegate all attribute access to the proxied client.
 
-        For long-lived clients, call await ensure_valid_token() before operations.
+        The proxy automatically calls ensure_valid_token() before async
+        method executions, providing seamless token refresh.
 
         Args:
             name: Attribute name to access on the underlying client.
 
         Returns:
-            The attribute from the underlying AsyncClient.
+            The attribute from the proxied AsyncClient.
 
         Raises:
             AttributeError: If attribute doesn't exist on the client.
         """
-        if self._client is None:
+        if self._proxied_client is None:
             raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
-        return getattr(self._client, name)
+        return getattr(self._proxied_client, name)
