@@ -168,3 +168,25 @@ class ScopedClient:
         """
         self._ensure_valid_token()
         return self._client.realtime
+
+    def __getattr__(self, name: str) -> Any:
+        """Delegate unknown attributes to underlying client with auto-refresh.
+
+        This fallback ensures any new Supabase Client methods work automatically
+        without requiring wrapper updates. Explicit methods above provide IDE
+        autocomplete for common operations.
+
+        Args:
+            name: Attribute name to access on the underlying client.
+
+        Returns:
+            The attribute from the underlying Supabase client.
+
+        Raises:
+            AttributeError: If attribute doesn't exist on the client.
+        """
+        if self._client is None:
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+        self._ensure_valid_token()
+        return getattr(self._client, name)

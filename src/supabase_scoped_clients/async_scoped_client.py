@@ -138,6 +138,8 @@ class AsyncScopedClient:
 
         Uses asyncio.Lock for single-flight pattern - concurrent operations
         share one refresh rather than triggering multiple refreshes.
+
+        Call this before operations on long-lived clients.
         """
         if not self._needs_refresh():
             return
@@ -147,11 +149,13 @@ class AsyncScopedClient:
             if self._needs_refresh():
                 await self._refresh_token()
 
+    # Public alias
+    ensure_valid_token = _ensure_valid_token
+
     def table(self, table_name: str) -> Any:
         """Access a table.
 
-        Note: For automatic token refresh, call await _ensure_valid_token()
-        before performing operations when using long-lived clients.
+        For long-lived clients, call await _ensure_valid_token() first.
 
         Args:
             table_name: Name of the table to access.
@@ -181,6 +185,8 @@ class AsyncScopedClient:
 
     def rpc(self, fn: str, params: dict[str, Any] | None = None) -> Any:
         """Call a stored procedure via RPC.
+
+        For long-lived clients, call await _ensure_valid_token() first.
 
         Args:
             fn: Name of the stored procedure to call.
@@ -219,3 +225,26 @@ class AsyncScopedClient:
             Postgrest client from the underlying AsyncClient.
         """
         return self._client.postgrest
+
+    def __getattr__(self, name: str) -> Any:
+        """Delegate unknown attributes to underlying client.
+
+        This fallback ensures any new AsyncClient methods work automatically
+        without requiring wrapper updates. Explicit methods above provide IDE
+        autocomplete for common operations.
+
+        For long-lived clients, call await _ensure_valid_token() before operations.
+
+        Args:
+            name: Attribute name to access on the underlying client.
+
+        Returns:
+            The attribute from the underlying AsyncClient.
+
+        Raises:
+            AttributeError: If attribute doesn't exist on the client.
+        """
+        if self._client is None:
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+        return getattr(self._client, name)
