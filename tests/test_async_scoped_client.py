@@ -140,8 +140,8 @@ class TestAsyncScopedClientTokenRefresh:
         # Wait until we're within refresh threshold
         await asyncio.sleep(1.5)
 
-        # Access table (should trigger refresh)
-        client.table("test_user_data")
+        # Ensure token validity (should trigger refresh)
+        await client._ensure_valid_token()
 
         # Token should have been refreshed with new expiry
         assert client._token_exp > original_exp
@@ -165,8 +165,8 @@ class TestAsyncScopedClientTokenRefresh:
         # so the next access should refresh
         await asyncio.sleep(0.1)  # Small delay to ensure time has passed
 
-        # Access table (should trigger refresh since current_time + 8 >= exp)
-        client.table("test_user_data")
+        # Ensure token validity (should trigger refresh since current_time + 8 >= exp)
+        await client._ensure_valid_token()
 
         # With 8s threshold on 10s token, refresh should have happened
         assert client._token_exp >= original_exp
