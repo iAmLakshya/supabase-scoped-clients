@@ -2,7 +2,7 @@
 
 __version__ = "0.1.0"
 
-from .config import Config
+from .config import Config, load_config
 from .exceptions import (
     ClientError,
     ConfigurationError,
@@ -12,6 +12,7 @@ from .exceptions import (
 
 __all__ = [
     "Config",
+    "load_config",
     "SupabaseScopedClientsError",
     "ConfigurationError",
     "TokenError",
