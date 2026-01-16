@@ -102,79 +102,11 @@ class ScopedClient:
             if current_time + self._refresh_threshold >= self._token_exp:
                 self._create_client()
 
-    def table(self, table_name: str) -> Any:
-        """Access a table with automatic token refresh.
-
-        Args:
-            table_name: Name of the table to access.
-
-        Returns:
-            Table query builder from the underlying Supabase client.
-        """
-        self._ensure_valid_token()
-        return self._client.table(table_name)
-
-    @property
-    def storage(self) -> Any:
-        """Access storage with automatic token refresh.
-
-        Returns:
-            Storage client from the underlying Supabase client.
-        """
-        self._ensure_valid_token()
-        return self._client.storage
-
-    @property
-    def functions(self) -> Any:
-        """Access edge functions with automatic token refresh.
-
-        Returns:
-            Functions client from the underlying Supabase client.
-        """
-        self._ensure_valid_token()
-        return self._client.functions
-
-    def rpc(self, fn: str, params: dict[str, Any] | None = None) -> Any:
-        """Call a stored procedure with automatic token refresh.
-
-        Args:
-            fn: Name of the stored procedure to call.
-            params: Parameters to pass to the procedure.
-
-        Returns:
-            RPC query builder from the underlying Supabase client.
-        """
-        self._ensure_valid_token()
-        if params is None:
-            return self._client.rpc(fn)
-        return self._client.rpc(fn, params)
-
-    @property
-    def auth(self) -> Any:
-        """Access auth with automatic token refresh.
-
-        Returns:
-            Auth client from the underlying Supabase client.
-        """
-        self._ensure_valid_token()
-        return self._client.auth
-
-    @property
-    def realtime(self) -> Any:
-        """Access realtime with automatic token refresh.
-
-        Returns:
-            Realtime client from the underlying Supabase client.
-        """
-        self._ensure_valid_token()
-        return self._client.realtime
-
     def __getattr__(self, name: str) -> Any:
-        """Delegate unknown attributes to underlying client with auto-refresh.
+        """Delegate all attribute access to underlying client with auto-refresh.
 
-        This fallback ensures any new Supabase Client methods work automatically
-        without requiring wrapper updates. Explicit methods above provide IDE
-        autocomplete for common operations.
+        Automatically refreshes the token before delegating, ensuring seamless
+        operation regardless of which Supabase Client method is called.
 
         Args:
             name: Attribute name to access on the underlying client.

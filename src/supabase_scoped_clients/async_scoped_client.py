@@ -152,88 +152,10 @@ class AsyncScopedClient:
     # Public alias
     ensure_valid_token = _ensure_valid_token
 
-    def table(self, table_name: str) -> Any:
-        """Access a table.
-
-        For long-lived clients, call await _ensure_valid_token() first.
-
-        Args:
-            table_name: Name of the table to access.
-
-        Returns:
-            Table query builder from the underlying AsyncClient.
-        """
-        return self._client.table(table_name)
-
-    @property
-    def storage(self) -> Any:
-        """Access storage client.
-
-        Returns:
-            Storage client from the underlying AsyncClient.
-        """
-        return self._client.storage
-
-    @property
-    def functions(self) -> Any:
-        """Access edge functions client.
-
-        Returns:
-            Functions client from the underlying AsyncClient.
-        """
-        return self._client.functions
-
-    def rpc(self, fn: str, params: dict[str, Any] | None = None) -> Any:
-        """Call a stored procedure via RPC.
-
-        For long-lived clients, call await _ensure_valid_token() first.
-
-        Args:
-            fn: Name of the stored procedure to call.
-            params: Parameters to pass to the procedure.
-
-        Returns:
-            RPC query builder from the underlying AsyncClient.
-        """
-        if params is None:
-            return self._client.rpc(fn)
-        return self._client.rpc(fn, params)
-
-    @property
-    def auth(self) -> Any:
-        """Access auth client.
-
-        Returns:
-            Auth client from the underlying AsyncClient.
-        """
-        return self._client.auth
-
-    @property
-    def realtime(self) -> Any:
-        """Access realtime client.
-
-        Returns:
-            Realtime client from the underlying AsyncClient.
-        """
-        return self._client.realtime
-
-    @property
-    def postgrest(self) -> Any:
-        """Access postgrest client directly.
-
-        Returns:
-            Postgrest client from the underlying AsyncClient.
-        """
-        return self._client.postgrest
-
     def __getattr__(self, name: str) -> Any:
-        """Delegate unknown attributes to underlying client.
+        """Delegate all attribute access to underlying client.
 
-        This fallback ensures any new AsyncClient methods work automatically
-        without requiring wrapper updates. Explicit methods above provide IDE
-        autocomplete for common operations.
-
-        For long-lived clients, call await _ensure_valid_token() before operations.
+        For long-lived clients, call await ensure_valid_token() before operations.
 
         Args:
             name: Attribute name to access on the underlying client.
