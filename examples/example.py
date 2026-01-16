@@ -22,27 +22,29 @@ from supabase_scoped_clients import (
 # 1. BASIC USAGE
 # ============================================================
 
-user_id = str(uuid.uuid4())
-client = get_client(user_id)
+user_1 = str(uuid.uuid4())
+client_1 = get_client(user_1)
 
-note = (
-    client.table("notes")
-    .insert({"user_id": user_id, "title": "My Note", "content": "Hello world"})
+note_1 = (
+    client_1.table("notes")
+    .insert({"user_id": user_1, "title": "My Note", "content": "Hello world"})
     .execute()
     .data[0]
 )
 
-notes = client.table("notes").select("*").execute().data
+notes = client_1.table("notes").select("*").execute().data
 assert len(notes) == 1
 
 updated = (
-    client.table("notes")
+    client_1.table("notes")
     .update({"title": "Updated Note"})
-    .eq("id", note["id"])
+    .eq("id", note_1["id"])
     .execute()
     .data[0]
 )
 assert updated["title"] == "Updated Note"
+
+client_1.table("notes").delete().eq("id", note_1["id"]).execute()
 
 
 # ============================================================
@@ -135,31 +137,22 @@ asyncio.run(async_example())
 # ============================================================
 # Use when you need custom claims or non-default expiry.
 
-user_id = str(uuid.uuid4())
+user_5 = str(uuid.uuid4())
 
-client = (
-    ScopedClientBuilder(user_id)
+client_5 = (
+    ScopedClientBuilder(user_5)
     .with_claims({"org_id": "org-123", "role": "admin"})
     .with_expiry(7200)  # 2 hours
     .build()
 )
 
-note = (
-    client.table("notes")
-    .insert({"user_id": user_id, "title": "Multi-tenant Note", "content": "With org_id"})
+note_5 = (
+    client_5.table("notes")
+    .insert({"user_id": user_5, "title": "Multi-tenant Note", "content": "With org_id"})
     .execute()
     .data[0]
 )
 
-client.table("notes").delete().eq("id", note["id"]).execute()
+client_5.table("notes").delete().eq("id", note_5["id"]).execute()
 
-
-# ============================================================
-# CLEANUP
-# ============================================================
-
-# Clean up the note from section 1
-client = get_client(user_id)
-client.table("notes").delete().neq("id", "").execute()
-
-print("All examples passed successfully!")
+print("All examples passed!")
