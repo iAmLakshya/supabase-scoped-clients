@@ -2,20 +2,18 @@
 
 __version__ = "0.1.0"
 
-from .async_builder import AsyncScopedClientBuilder
-from .async_factory import get_async_client
-from .async_scoped_client import AsyncScopedClient
-from .builder import ScopedClientBuilder
-from .config import Config, load_config
-from .exceptions import (
+from .builders import AsyncScopedClientBuilder, ScopedClientBuilder
+from .clients import AsyncScopedClient, ScopedClient
+from .core import (
     ClientError,
+    Config,
     ConfigurationError,
     SupabaseScopedClientsError,
     TokenError,
+    generate_token,
+    load_config,
 )
-from .factory import get_client
-from .jwt import generate_token
-from .scoped_client import ScopedClient
+from .factories import get_async_client, get_client
 
 __all__ = [
     "Config",
