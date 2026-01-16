@@ -9,12 +9,14 @@ from .exceptions import (
     SupabaseScopedClientsError,
     TokenError,
 )
+from .factory import get_client
 from .jwt import generate_token
 
 __all__ = [
     "Config",
     "load_config",
     "generate_token",
+    "get_client",
     "SupabaseScopedClientsError",
     "ConfigurationError",
     "TokenError",
