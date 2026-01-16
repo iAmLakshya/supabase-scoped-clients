@@ -14,6 +14,7 @@ dev = [
     "pytest>=8.0.0,<9.0.0",
     "pytest-asyncio>=0.23.0,<1.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
+    "mypy>=1.0.0,<2.0.0",
 ]
 
 [tool.poetry]
@@ -22,6 +23,14 @@ packages = [{include = "supabase_scoped_clients", from = "src"}]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+packages = ["supabase_scoped_clients"]
+
+[[tool.mypy.overrides]]
+module = ["supabase.*", "jwt.*"]
+ignore_missing_imports = true
 
 [build-system]
 requires = ["poetry-core"]
