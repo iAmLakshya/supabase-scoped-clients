@@ -52,7 +52,7 @@ def generate_token(
             "sub": user_id,
             "role": role,
             "aud": "authenticated",
-            "iss": str(config.supabase_url),
+            "iss": f"{config.supabase_url}/auth/v1",
             "iat": iat,
             "exp": exp,
         }

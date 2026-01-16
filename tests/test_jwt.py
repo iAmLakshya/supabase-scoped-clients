@@ -84,7 +84,7 @@ class TestGenerateTokenBasic:
             algorithms=["HS256"],
             audience="authenticated",
         )
-        assert decoded["iss"] == str(config.supabase_url)
+        assert decoded["iss"] == f"{config.supabase_url}/auth/v1"
 
     def test_token_contains_iat_claim(self, config: Config) -> None:
         """Token should have an iat (issued at) timestamp."""
