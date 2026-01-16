@@ -4,9 +4,10 @@ import uuid
 
 import pytest
 
-from supabase_scoped_clients import ClientError, Config
-from supabase_scoped_clients.builder import ScopedClientBuilder
-from supabase_scoped_clients.scoped_client import ScopedClient
+from supabase_scoped_clients.builders.sync import ScopedClientBuilder
+from supabase_scoped_clients.clients.sync import ScopedClient
+from supabase_scoped_clients.core.config import Config
+from supabase_scoped_clients.core.exceptions import ClientError
 
 
 LOCAL_SUPABASE_URL = "http://127.0.0.1:54331"

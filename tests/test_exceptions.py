@@ -2,7 +2,7 @@
 
 import pytest
 
-from supabase_scoped_clients import (
+from supabase_scoped_clients.core.exceptions import (
     ClientError,
     ConfigurationError,
     SupabaseScopedClientsError,

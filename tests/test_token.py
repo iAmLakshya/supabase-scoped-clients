@@ -6,8 +6,9 @@ from typing import Any
 import jwt
 import pytest
 
-from supabase_scoped_clients import Config, TokenError
-from supabase_scoped_clients.jwt import generate_token
+from supabase_scoped_clients.core.config import Config
+from supabase_scoped_clients.core.exceptions import TokenError
+from supabase_scoped_clients.core.token import generate_token
 
 
 @pytest.fixture

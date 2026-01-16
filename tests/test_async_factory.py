@@ -5,8 +5,9 @@ import uuid
 import pytest
 from supabase import AsyncClient
 
-from supabase_scoped_clients import ClientError, Config
-from supabase_scoped_clients.async_factory import get_async_client
+from supabase_scoped_clients.core.config import Config
+from supabase_scoped_clients.core.exceptions import ClientError
+from supabase_scoped_clients.factories.async_factory import get_async_client
 
 
 # Test data - use local Supabase dev instance

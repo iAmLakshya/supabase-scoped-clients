@@ -7,7 +7,8 @@ import uuid
 import pytest
 from supabase import AsyncClient
 
-from supabase_scoped_clients import ClientError, Config
+from supabase_scoped_clients.core.config import Config
+from supabase_scoped_clients.core.exceptions import ClientError
 
 
 # Test data - use local Supabase dev instance
@@ -32,7 +33,7 @@ class TestAsyncScopedClientCreation:
     @pytest.mark.asyncio
     async def test_create_returns_async_scoped_client(self, config):
         """AsyncScopedClient.create() returns an AsyncScopedClient instance."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(user_id, config=config)
@@ -41,7 +42,7 @@ class TestAsyncScopedClientCreation:
     @pytest.mark.asyncio
     async def test_empty_user_id_raises_client_error(self, config):
         """Empty user_id raises ClientError."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         with pytest.raises(ClientError) as excinfo:
             await AsyncScopedClient.create("", config=config)
@@ -50,7 +51,7 @@ class TestAsyncScopedClientCreation:
     @pytest.mark.asyncio
     async def test_whitespace_user_id_raises_client_error(self, config):
         """Whitespace-only user_id raises ClientError."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         with pytest.raises(ClientError) as excinfo:
             await AsyncScopedClient.create("   ", config=config)
@@ -63,7 +64,7 @@ class TestAsyncScopedClientDelegation:
     @pytest.mark.asyncio
     async def test_table_property_returns_table_accessor(self, config):
         """table property returns the underlying client's table accessor."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(user_id, config=config)
@@ -73,7 +74,7 @@ class TestAsyncScopedClientDelegation:
     @pytest.mark.asyncio
     async def test_storage_property_returns_storage_client(self, config):
         """storage property returns the underlying client's storage client."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(user_id, config=config)
@@ -83,7 +84,7 @@ class TestAsyncScopedClientDelegation:
     @pytest.mark.asyncio
     async def test_functions_property_returns_functions_client(self, config):
         """functions property returns the underlying client's functions client."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(user_id, config=config)
@@ -93,7 +94,7 @@ class TestAsyncScopedClientDelegation:
     @pytest.mark.asyncio
     async def test_rpc_method_calls_underlying_client(self, config):
         """rpc method delegates to the underlying client."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(user_id, config=config)
@@ -108,7 +109,7 @@ class TestAsyncScopedClientTokenRefresh:
     @pytest.mark.asyncio
     async def test_token_not_refreshed_when_valid(self, config):
         """Token is not refreshed when it's still valid."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(
@@ -125,7 +126,7 @@ class TestAsyncScopedClientTokenRefresh:
     @pytest.mark.asyncio
     async def test_token_refreshed_when_near_expiry(self, config):
         """Token is refreshed when approaching expiry threshold."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         # Create with 2 second expiry and 1 second threshold
@@ -149,7 +150,7 @@ class TestAsyncScopedClientTokenRefresh:
     @pytest.mark.asyncio
     async def test_refresh_threshold_is_configurable(self, config):
         """refresh_threshold_seconds parameter controls when refresh happens."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         # Create with 10 second expiry but 8 second threshold
@@ -178,7 +179,7 @@ class TestAsyncScopedClientSingleFlight:
     @pytest.mark.asyncio
     async def test_concurrent_operations_share_single_refresh(self, config):
         """Multiple concurrent operations don't cause multiple refreshes."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(
@@ -233,7 +234,7 @@ class TestAsyncScopedClientRLS:
     @pytest.mark.asyncio
     async def test_scoped_client_can_insert_own_data(self, config, user1_id):
         """AsyncScopedClient can insert data with their own user_id."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         client = await AsyncScopedClient.create(user1_id, config=config)
 
@@ -249,7 +250,7 @@ class TestAsyncScopedClientRLS:
     @pytest.mark.asyncio
     async def test_scoped_client_can_read_own_data(self, config, user1_id):
         """AsyncScopedClient can read their own data."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         client = await AsyncScopedClient.create(user1_id, config=config)
 
@@ -269,7 +270,7 @@ class TestAsyncScopedClientRLS:
         self, config, user1_id, user2_id
     ):
         """AsyncScopedClient cannot read another user's data."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         # User 1 inserts data
         client1 = await AsyncScopedClient.create(user1_id, config=config)
@@ -294,7 +295,7 @@ class TestAsyncScopedClientParameters:
     @pytest.mark.asyncio
     async def test_role_parameter_is_used(self, config):
         """role parameter is passed to token generation."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(
@@ -305,7 +306,7 @@ class TestAsyncScopedClientParameters:
     @pytest.mark.asyncio
     async def test_expiry_seconds_parameter_is_used(self, config):
         """expiry_seconds parameter is stored for refresh."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         client = await AsyncScopedClient.create(
@@ -316,7 +317,7 @@ class TestAsyncScopedClientParameters:
     @pytest.mark.asyncio
     async def test_custom_claims_parameter_is_stored(self, config):
         """custom_claims parameter is stored for refresh."""
-        from supabase_scoped_clients.async_scoped_client import AsyncScopedClient
+        from supabase_scoped_clients.clients.async_client import AsyncScopedClient
 
         user_id = str(uuid.uuid4())
         custom = {"org_id": "test-org"}

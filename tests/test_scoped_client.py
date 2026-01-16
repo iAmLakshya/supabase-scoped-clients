@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from supabase_scoped_clients import Config
-from supabase_scoped_clients.scoped_client import ScopedClient
+from supabase_scoped_clients.clients.sync import ScopedClient
+from supabase_scoped_clients.core.config import Config
 
 
 # Test data - use local Supabase dev instance

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from supabase_scoped_clients.proxy import (
+from supabase_scoped_clients.infrastructure.proxy import (
     AsyncTokenManager,
     TokenManager,
     TokenRefreshProxy,
