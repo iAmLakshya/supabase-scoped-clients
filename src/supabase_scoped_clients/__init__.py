@@ -9,10 +9,12 @@ from .exceptions import (
     SupabaseScopedClientsError,
     TokenError,
 )
+from .jwt import generate_token
 
 __all__ = [
     "Config",
     "load_config",
+    "generate_token",
     "SupabaseScopedClientsError",
     "ConfigurationError",
     "TokenError",
