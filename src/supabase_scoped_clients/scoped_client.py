@@ -10,6 +10,7 @@ from supabase.lib.client_options import SyncClientOptions
 from .config import Config, load_config
 from .exceptions import ClientError
 from .jwt import generate_token
+from .proxy import create_proxy
 
 
 class ScopedClient:
@@ -60,6 +61,7 @@ class ScopedClient:
         self._lock = threading.Lock()
         self._token_exp: int = 0
         self._client: Client | None = None
+        self._proxied_client: Client | None = None
 
         self._create_client()
 
@@ -85,7 +87,9 @@ class ScopedClient:
             options=options,
         )
 
-    def _ensure_valid_token(self) -> None:
+        self._proxied_client = create_proxy(self._client, self)
+
+    def ensure_valid_token(self) -> None:
         """Check if token refresh is needed and refresh if so.
 
         Uses double-checked locking pattern to minimize lock contention
@@ -97,28 +101,38 @@ class ScopedClient:
             return
 
         with self._lock:
-            # Double-check after acquiring lock
             current_time = int(time.time())
             if current_time + self._refresh_threshold >= self._token_exp:
                 self._create_client()
 
+    @property
+    def client(self) -> Client:
+        """Get the proxied client with automatic token refresh.
+
+        Returns:
+            The proxied Supabase client that auto-refreshes tokens.
+        """
+        if self._proxied_client is None:
+            raise ClientError("Client not initialized")
+        return self._proxied_client
+
     def __getattr__(self, name: str) -> Any:
-        """Delegate all attribute access to underlying client with auto-refresh.
+        """Delegate all attribute access to the proxied client with auto-refresh.
 
         Automatically refreshes the token before delegating, ensuring seamless
-        operation regardless of which Supabase Client method is called.
+        operation regardless of which Supabase Client method/property is accessed.
 
         Args:
             name: Attribute name to access on the underlying client.
 
         Returns:
-            The attribute from the underlying Supabase client.
+            The attribute from the proxied Supabase client.
 
         Raises:
             AttributeError: If attribute doesn't exist on the client.
         """
-        if self._client is None:
+        if self._proxied_client is None:
             raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
-        self._ensure_valid_token()
-        return getattr(self._client, name)
+        self.ensure_valid_token()
+        return getattr(self._proxied_client, name)
