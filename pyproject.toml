@@ -15,6 +15,7 @@ dev = [
     "pytest-asyncio>=0.23.0,<1.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
     "mypy>=1.0.0,<2.0.0",
+    "ruff>=0.8.0,<1.0.0",
 ]
 
 [tool.poetry]
@@ -31,6 +32,15 @@ packages = ["supabase_scoped_clients"]
 [[tool.mypy.overrides]]
 module = ["supabase.*", "jwt.*"]
 ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+lint.select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
+lint.ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["supabase_scoped_clients"]
 
 [build-system]
 requires = ["poetry-core"]
